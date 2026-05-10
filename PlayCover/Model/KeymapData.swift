@@ -16,11 +16,19 @@ struct KeyModelTransform: Codable {
 struct ButtonModel: Codable {
     var keyCode: Int
     var keyName: String
+    var modifierKeyCode: Int?
+    var modifierKeyName: String?
     var transform: KeyModelTransform
 
-    init(keyCode: Int, keyName: String, transform: KeyModelTransform) {
+    init(keyCode: Int,
+         keyName: String,
+         modifierKeyCode: Int? = nil,
+         modifierKeyName: String? = nil,
+         transform: KeyModelTransform) {
         self.keyCode = keyCode
         self.keyName = keyName.isEmpty ? KeyCodeNames.keyCodes[keyCode] ?? "Btn" : keyName
+        self.modifierKeyCode = modifierKeyCode
+        self.modifierKeyName = modifierKeyName
         self.transform = transform
     }
 
@@ -28,6 +36,8 @@ struct ButtonModel: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.init(keyCode: try container.decode(Int.self, forKey: .keyCode),
                   keyName: try container.decodeIfPresent(String.self, forKey: .keyName) ?? "",
+                  modifierKeyCode: try container.decodeIfPresent(Int.self, forKey: .modifierKeyCode),
+                  modifierKeyName: try container.decodeIfPresent(String.self, forKey: .modifierKeyName),
                   transform: try container.decode(KeyModelTransform.self, forKey: .transform))
     }
 }
