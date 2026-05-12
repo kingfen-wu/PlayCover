@@ -118,7 +118,7 @@ class Keymapping {
             return map
         } catch {
             print(error)
-            return reset(name: name)
+            return Keymap(bundleIdentifier: info.bundleIdentifier)
         }
     }
 
