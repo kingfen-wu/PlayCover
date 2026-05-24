@@ -118,7 +118,7 @@ class Keymapping {
             return map
         } catch {
             print(error)
-            return reset(name: name)
+            return Keymap(bundleIdentifier: info.bundleIdentifier)
         }
     }
 
@@ -129,17 +129,20 @@ class Keymapping {
     }
 
     private func setKeymap(name: String, map: Keymap) {
-        let keymapPath = constructKeymapPath(name: name)
-
         do {
             let data = try encoder.encode(map)
-            try data.write(to: keymapPath)
-
-            if !keymapConfig.keymapOrder.contains(keymapPath) {
-                keymapConfig.keymapOrder.append(keymapPath)
-            }
+            try setKeymapData(name: name, data: data)
         } catch {
             print(error)
+        }
+    }
+
+    private func setKeymapData(name: String, data: Data) throws {
+        let keymapPath = constructKeymapPath(name: name)
+        try data.write(to: keymapPath)
+
+        if !keymapConfig.keymapOrder.contains(keymapPath) {
+            keymapConfig.keymapOrder.append(keymapPath)
         }
     }
 
@@ -220,11 +223,11 @@ class Keymapping {
                         let data = try Data(contentsOf: selectedPath)
                         let importedKeymap = try PropertyListDecoder().decode(Keymap.self, from: data)
                         if importedKeymap.bundleIdentifier == self.info.bundleIdentifier {
-                            self.setKeymap(name: name, map: importedKeymap)
+                            try self.setKeymapData(name: name, data: data)
                             success(true)
                         } else {
                             if self.differentBundleIdKeymapAlert() {
-                                self.setKeymap(name: name, map: importedKeymap)
+                                try self.setKeymapData(name: name, data: data)
                                 success(true)
                             } else {
                                 success(false)
@@ -268,8 +271,11 @@ class Keymapping {
             if result == .OK {
                 do {
                     if let selectedPath = savePanel.url {
-                        let data = try self.encoder.encode(self.getKeymap(name: name))
-                        try data.write(to: selectedPath)
+                        let keymapPath = self.constructKeymapPath(name: name)
+                        if FileManager.default.fileExists(atPath: selectedPath.path) {
+                            try FileManager.default.removeItem(at: selectedPath)
+                        }
+                        try FileManager.default.copyItem(at: keymapPath, to: selectedPath)
                         selectedPath.openInFinder()
                     }
                 } catch {
