@@ -1,3 +1,15 @@
+个人修改版playcover
+
+主要是扩展对手柄的支持：
+1、支持添加轮盘映射，一个轮盘可以映射8个按键；
+2、支持映射滑动操作；
+3、支持手柄快速切换映射配置：按住左肩键+短按右肩键 切换下一套映射、按住右肩键+短按左肩键 切换上一套映射；
+4、支持组合键映射；
+
+个人做了两套映射：分别对应主界面和战斗界面 https://github.com/kingfen-wu/PlayCover
+
+
+
 <div id="top"></div>
 
 ‎<h1 align="center">[![Contributors][contributors-shield]][contributors-url]
