@@ -10,7 +10,7 @@
 
 4、支持组合键映射；
 
-个人做了两套映射：分别对应主界面和战斗界面 https://github.com/kingfen-wu/PlayCover
+个人做了两套映射：分别对应主界面和战斗界面 https://github.com/kingfen-wu/playmap
 
 
 
