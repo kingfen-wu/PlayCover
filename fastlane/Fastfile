@@ -13,9 +13,36 @@
 # Uncomment the line if you want fastlane to automatically update itself
 # update_fastlane
 
+require "shellwords"
+
 default_platform(:mac)
 
 bundle_id = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+developer_team_id = CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
+
+def verify_developer_id_app!(app_path, expected_team_id)
+  app = File.expand_path(app_path)
+  sh("codesign", "--verify", "--deep", "--strict", "--verbose=4", app)
+
+  checks = {
+    "PlayCover.app" => app,
+    "Sparkle.framework" => File.join(app, "Contents/Frameworks/Sparkle.framework"),
+    "PlayTools.framework" => File.join(app, "Contents/Frameworks/PlayTools.framework"),
+  }
+
+  checks.each do |name, path|
+    UI.user_error!("#{name} is missing at #{path}") unless File.exist?(path)
+
+    details = sh("codesign --display --verbose=4 #{path.shellescape} 2>&1", log: false)
+    UI.user_error!("#{name} was signed ad-hoc") if details.include?("Signature=adhoc")
+
+    team_match = details.match(/^TeamIdentifier=(.+)$/)
+    team_id = team_match && team_match[1].strip
+    next if team_id == expected_team_id
+
+    UI.user_error!("#{name} TeamIdentifier is #{team_id || "missing"}, expected #{expected_team_id}")
+  end
+end
 
 platform :mac do
   desc "Description of what the lane does"
@@ -41,6 +68,7 @@ lane :release do
     skip_package_pkg: true,
     xcargs: "FASTLANE=1",
     )
+  verify_developer_id_app!("output/PlayCover.app", developer_team_id)
 end
 
 lane :nightly do
@@ -60,6 +88,7 @@ lane :nightly do
     skip_package_pkg: true,
     xcargs: "FASTLANE=1",
     )
+  verify_developer_id_app!("output/PlayCover.app", developer_team_id)
 end
 
 lane :notarize_app do
